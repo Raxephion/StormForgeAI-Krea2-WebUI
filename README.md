@@ -4,6 +4,8 @@ Local Gradio UI for Krea 2 Turbo, backed by a headless ComfyUI instance
 (ComfyUI ships native Krea 2 support and handles fp8 loading + low-VRAM
 offloading).
 
+!!! APP IS IN ACTIVE DEVELOPMENT!!!
+
 ## Setup
 
 1. Run `install.bat` (creates a venv, installs PyTorch + ComfyUI + this app's dependencies).
