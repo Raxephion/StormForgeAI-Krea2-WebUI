@@ -2,7 +2,7 @@
 
 Local Gradio UI for Krea 2 Turbo, backed by a headless ComfyUI instance
 (ComfyUI ships native Krea 2 support and handles fp8 loading + low-VRAM
-offloading).
+offloading). Generation time on RTX3060 6GB laptop GPU = 46 seconds at default settings. 
 
 !!! APP IS IN ACTIVE DEVELOPMENT!!!
 
