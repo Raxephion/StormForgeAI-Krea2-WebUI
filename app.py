@@ -457,7 +457,7 @@ label,
 """
 
 with gr.Blocks(title="Krea 2 WebUI", css=CYBERPUNK_CSS) as demo:
-    gr.Markdown("# Krea 2 WebUI", elem_id="main_title")
+    gr.Markdown("# StormForgeAI Krea 2 WebUI", elem_id="main_title")
     gr.Markdown("Local text-to-image UI for Krea 2 (Turbo), backed by ComfyUI.")
 
     with gr.Row():
