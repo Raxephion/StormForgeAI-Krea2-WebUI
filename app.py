@@ -1,4 +1,5 @@
 """
+Author: Raxephion
 Krea 2 WebUI - Gradio front-end for the Krea 2 (Turbo) image model.
 
 Uses a headless ComfyUI instance as the inference backend, since ComfyUI
@@ -301,18 +302,25 @@ def generate(
 # --------------------------------------------------------------------------
 
 CYBERPUNK_CSS = """
-/* --- CYBERPUNK HUD STYLES --- */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap');
+
 :root {
     --neon-blue: #00ffff;
     --neon-glow: 0 0 8px #00ffff, 0 0 16px #00ffff;
     --bg-black: #000000;
 }
-/* GLOBAL BACKGROUND */
+
+/* GLOBAL */
+html, body, .gradio-container,
+.gradio-container * {
+    font-family: 'Orbitron', sans-serif !important;
+}
+
 body, .gradio-container {
     background: var(--bg-black) !important;
     color: var(--neon-blue) !important;
-    font-family: 'Share Tech Mono', monospace !important;
 }
+
 /* MAIN TITLE */
 #main_title {
     color: var(--neon-blue) !important;
@@ -322,27 +330,46 @@ body, .gradio-container {
     border-bottom: 1px solid var(--neon-blue);
     padding-bottom: 8px;
 }
-/* TEXTBOXES */
-textarea, input[type="text"], .gr-textbox, .gr-input {
+
+/* INPUTS */
+textarea,
+input[type="text"],
+input[type="number"],
+.gr-textbox,
+.gr-input,
+.gradio-dropdown,
+.wrap,
+.wrap-inner {
     background: var(--bg-black) !important;
     border: 1px solid var(--neon-blue) !important;
     color: var(--neon-blue) !important;
     text-shadow: var(--neon-glow);
-    font-family: 'Share Tech Mono', monospace !important;
     border-radius: 0 !important;
     box-shadow: inset 0 0 12px #003333;
 }
-/* OUTPUT + INPUT TEXTAREAS */
-#agent_output textarea, #user_input textarea {
+
+/* DROPDOWNS */
+.gradio-dropdown,
+.gradio-dropdown input,
+.gradio-dropdown button,
+ul.options,
+ul.options li {
+    font-family: 'Orbitron', sans-serif !important;
     background: var(--bg-black) !important;
     color: var(--neon-blue) !important;
-    border: 1px solid var(--neon-blue) !important;
-    text-shadow: var(--neon-glow);
-    font-size: 15px !important;
-    box-shadow: inset 0 0 20px #002222;
 }
+
+/* IMAGE / GALLERY */
+.gradio-gallery,
+.gradio-image {
+    border: 1px solid var(--neon-blue) !important;
+    border-radius: 0 !important;
+    background: #001111 !important;
+}
+
 /* BUTTONS */
-button, .gr-button {
+button,
+.gr-button {
     background: var(--bg-black) !important;
     border: 1px solid var(--neon-blue) !important;
     color: var(--neon-blue) !important;
@@ -350,35 +377,82 @@ button, .gr-button {
     border-radius: 0 !important;
     transition: all 0.2s ease-in-out;
 }
-button:hover, .gr-button:hover {
+
+button:hover,
+.gr-button:hover {
     background: var(--neon-blue) !important;
     color: var(--bg-black) !important;
     text-shadow: none !important;
     box-shadow: 0 0 20px #00ffff;
 }
-/* ACCORDIONS & BOXES */
-.gr-accordion, .gr-box {
+
+/* ACCORDIONS, BOXES, TABS */
+.gr-accordion,
+.gr-box,
+.gradio-tabs > .tab-nav > button {
     background: var(--bg-black) !important;
     border: 1px solid var(--neon-blue) !important;
     color: var(--neon-blue) !important;
-    text-shadow: var(--neon-glow);
     border-radius: 0 !important;
 }
-/* SLIDERS */
-input[type=range]::-webkit-slider-thumb {
+
+.gradio-tabs > .tab-nav > button.selected {
     background: var(--neon-blue) !important;
+    color: var(--bg-black) !important;
+    text-shadow: none !important;
+}
+
+/* SLIDERS */
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 0;
+    background: var(--neon-blue);
+    cursor: pointer;
+    margin-top: -7px;
     box-shadow: var(--neon-glow);
 }
-input[type=range]::-webkit-slider-runnable-track {
-    background: #003333 !important;
+
+input[type="range"]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 2px;
+    cursor: pointer;
+    background: var(--neon-blue) !important;
     border: 1px solid var(--neon-blue);
 }
-/* LABELS */
-h3, label, .gr-checkbox label span {
+
+/* LABELS / HEADINGS */
+h1, h2, h3, h4,
+label,
+.gr-checkbox label span,
+.gradio-container label span {
     color: var(--neon-blue) !important;
     text-shadow: var(--neon-glow);
+    font-family: 'Orbitron', sans-serif !important;
     font-weight: 600;
     text-transform: uppercase;
+}
+
+/* MARKDOWN */
+.gr-markdown,
+.gr-markdown p,
+.gr-markdown li,
+.gr-markdown code,
+.gr-markdown strong {
+    font-family: 'Orbitron', sans-serif !important;
+    color: var(--neon-blue) !important;
+}
+
+/* STATUS */
+#status_box textarea {
+    font-family: 'Orbitron', sans-serif !important;
 }
 """
 
@@ -388,29 +462,8 @@ with gr.Blocks(title="Krea 2 WebUI", css=CYBERPUNK_CSS) as demo:
 
     with gr.Row():
         with gr.Column(scale=1):
-            gr.Markdown("### Model files")
-            init_models, init_encoders, init_vaes = refresh_file_lists()
-
-            model_dropdown = gr.Dropdown(label="Diffusion model (Krea 2 Turbo fp8)", **{
-                k: v for k, v in init_models.items() if k in ("choices", "value")
-            })
-            encoder_dropdown = gr.Dropdown(label="Text encoder (Qwen3-VL fp8)", **{
-                k: v for k, v in init_encoders.items() if k in ("choices", "value")
-            })
-            vae_dropdown = gr.Dropdown(label="VAE (Qwen-Image)", **{
-                k: v for k, v in init_vaes.items() if k in ("choices", "value")
-            })
-            refresh_btn = gr.Button("Refresh file lists")
-
-            gr.Markdown(
-                "Place files in:\n"
-                "- `ComfyUI/models/diffusion_models/`\n"
-                "- `ComfyUI/models/text_encoders/`\n"
-                "- `ComfyUI/models/vae/`"
-            )
-
             gr.Markdown("### Prompt")
-            prompt_box = gr.Textbox(label="Prompt", lines=4, placeholder="a fox walking in the snow")
+            prompt_box = gr.Textbox(label="Prompt", lines=6, placeholder="a fox walking in the snow")
             negative_box = gr.Textbox(label="Negative prompt (unused at cfg=1)", lines=2)
 
             with gr.Row():
@@ -437,16 +490,24 @@ with gr.Blocks(title="Krea 2 WebUI", css=CYBERPUNK_CSS) as demo:
                     seed_box = gr.Number(label="Seed", value=0, precision=0)
                     randomize_checkbox = gr.Checkbox(label="Randomize seed", value=True)
                 with gr.Row():
-                    tiled_vae_checkbox = gr.Checkbox(
-                        label="Tiled VAE decode (recommended for 6GB VRAM)", value=True
-                    )
+                    tiled_vae_checkbox = gr.Checkbox(label="Tiled VAE decode (recommended for 6GB VRAM)", value=True)
                     tile_size_slider = gr.Slider(256, 1024, value=512, step=64, label="VAE tile size")
 
             generate_btn = gr.Button("Generate", variant="primary")
 
         with gr.Column(scale=1):
             output_image = gr.Image(label="Output", type="pil")
-            status_box = gr.Textbox(label="Status", interactive=False)
+            status_box = gr.Textbox(label="Status", interactive=False, elem_id="status_box")
+
+    gr.Markdown("## Backend Configuration")
+
+    with gr.Row():
+        init_models, init_encoders, init_vaes = refresh_file_lists()
+
+        model_dropdown = gr.Dropdown(label="Diffusion model (Krea 2 Turbo fp8)", **{k:v for k,v in init_models.items() if k in ("choices","value")})
+        encoder_dropdown = gr.Dropdown(label="Text encoder (Qwen3-VL fp8)", **{k:v for k,v in init_encoders.items() if k in ("choices","value")})
+        vae_dropdown = gr.Dropdown(label="VAE (Qwen-Image)", **{k:v for k,v in init_vaes.items() if k in ("choices","value")})
+        refresh_btn = gr.Button("Refresh file lists")
 
     refresh_btn.click(
         fn=refresh_file_lists,
