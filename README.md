@@ -1,4 +1,4 @@
-# Krea 2 WebUI
+# StormForgeAI Krea 2 WebUI
 
 A lightweight, local WebUI for **Krea 2 Turbo**, designed for users who want the power of Krea 2 **without having to learn or use ComfyUI**.
 
