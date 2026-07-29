@@ -2,7 +2,7 @@
 
 A lightweight, local WebUI for **Krea 2 Turbo**, designed for users who want the power of Krea 2 **without having to learn or use ComfyUI**.
 
-Krea 2 WebUI provides a clean, straightforward interface focused on image generation rather than node graphs and workflows. Under the hood, the application launches a **headless (background) ComfyUI backend** that handles model loading, inference, FP8 support, and low-VRAM optimizations automatically. You never need to interact with ComfyUI directly unless you want to troubleshoot something.
+StormForgeAI Krea 2 WebUI provides a clean, straightforward interface focused on image generation rather than node graphs and workflows. Under the hood, the application launches a **headless (background) ComfyUI backend** that handles model loading, inference, FP8 support, and low-VRAM optimizations automatically. You never need to interact with ComfyUI directly unless you want to troubleshoot something.
 
 Because the backend is powered by ComfyUI, the application uses the **standard ComfyUI folder structure** for models, LoRAs, VAEs, text encoders, and other assets. This means you can easily reuse existing ComfyUI model libraries without duplicating files.
 
