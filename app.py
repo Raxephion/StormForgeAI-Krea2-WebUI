@@ -1,5 +1,4 @@
 """
-Author: Raxephion
 Krea 2 WebUI - Gradio front-end for the Krea 2 (Turbo) image model.
 
 Uses a headless ComfyUI instance as the inference backend, since ComfyUI
@@ -454,15 +453,67 @@ label,
 #status_box textarea {
     font-family: 'Orbitron', sans-serif !important;
 }
+
+
+/* --- STORMFORGE HUD LAYOUT --- */
+.gradio-container {
+    max-width: 1600px !important;
+    margin: 0 auto !important;
+    padding: 20px !important;
+    background-image:
+        linear-gradient(rgba(0,255,255,.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,255,.018) 1px, transparent 1px),
+        radial-gradient(circle at 50% 0%, rgba(0,255,255,.08), transparent 38%) !important;
+    background-size: 30px 30px, 30px 30px, auto !important;
+}
+#hud_header {
+    padding: 16px 22px 14px !important;
+    margin-bottom: 18px !important;
+    border: 1px solid var(--neon-blue) !important;
+    background: linear-gradient(90deg, rgba(0,255,255,.13), transparent 20%, transparent 80%, rgba(0,255,255,.13)), #02090b !important;
+    box-shadow: 0 0 24px rgba(0,255,255,.12), inset 0 0 22px rgba(0,255,255,.04) !important;
+    clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 24px 100%, 0 calc(100% - 24px));
+}
+#hud_subtitle { text-align:center; letter-spacing:.12em; text-transform:uppercase; font-size:.76rem !important; opacity:.78; }
+.hud-panel {
+    position: relative;
+    padding: 16px !important;
+    border: 1px solid var(--neon-blue) !important;
+    background: linear-gradient(135deg, rgba(0,255,255,.055), transparent 24%), #02090b !important;
+    box-shadow: 0 0 24px rgba(0,255,255,.10), inset 0 0 22px rgba(0,255,255,.035) !important;
+    border-radius: 0 !important;
+}
+.hud-panel::before {
+    content:""; position:absolute; top:-1px; left:18px; width:72px; height:3px;
+    background:var(--neon-blue); box-shadow:var(--neon-glow); pointer-events:none;
+}
+.hud-title {
+    margin: 0 0 14px !important;
+    padding: 7px 10px !important;
+    border-left: 4px solid var(--neon-blue);
+    border-bottom: 1px solid rgba(0,255,255,.32);
+    background: linear-gradient(90deg, rgba(0,255,255,.12), transparent);
+    letter-spacing:.12em; text-transform:uppercase;
+}
+#output_panel .gradio-image { min-height: 640px !important; }
+#backend_panel { margin-top:18px !important; }
+#generate_btn { min-height:56px !important; font-weight:800 !important; letter-spacing:.16em !important; }
+#generate_btn button { min-height:56px !important; }
+@media (max-width: 900px) {
+    .gradio-container { padding:10px !important; }
+    #output_panel .gradio-image { min-height:420px !important; }
+}
+
 """
 
-with gr.Blocks(title="Krea 2 WebUI", css=CYBERPUNK_CSS) as demo:
-    gr.Markdown("# StormForgeAI Krea 2 WebUI", elem_id="main_title")
-    gr.Markdown("Local text-to-image UI for Krea 2 (Turbo), backed by ComfyUI.")
+with gr.Blocks(title="StormForgeAI Krea 2 WebUI", css=CYBERPUNK_CSS) as demo:
+    with gr.Column(elem_id="hud_header"):
+        gr.Markdown("# StormForgeAI Krea 2 WebUI", elem_id="main_title")
+        gr.Markdown("Local Krea 2 Turbo inference console // Headless ComfyUI backend", elem_id="hud_subtitle")
 
     with gr.Row():
-        with gr.Column(scale=1):
-            gr.Markdown("### Prompt")
+        with gr.Column(scale=1, elem_classes=["hud-panel"], elem_id="prompt_panel"):
+            gr.Markdown("### Prompt & Generation", elem_classes=["hud-title"])
             prompt_box = gr.Textbox(label="Prompt", lines=6, placeholder="a fox walking in the snow")
             negative_box = gr.Textbox(label="Negative prompt (unused at cfg=1)", lines=2)
 
@@ -493,21 +544,23 @@ with gr.Blocks(title="Krea 2 WebUI", css=CYBERPUNK_CSS) as demo:
                     tiled_vae_checkbox = gr.Checkbox(label="Tiled VAE decode (recommended for 6GB VRAM)", value=True)
                     tile_size_slider = gr.Slider(256, 1024, value=512, step=64, label="VAE tile size")
 
-            generate_btn = gr.Button("Generate", variant="primary")
+            generate_btn = gr.Button("Initialize Generation", variant="primary", elem_id="generate_btn")
 
-        with gr.Column(scale=1):
+        with gr.Column(scale=1, elem_classes=["hud-panel"], elem_id="output_panel"):
+            gr.Markdown("### Output Monitor", elem_classes=["hud-title"])
             output_image = gr.Image(label="Output", type="pil")
             status_box = gr.Textbox(label="Status", interactive=False, elem_id="status_box")
 
-    gr.Markdown("## Backend Configuration")
+    with gr.Column(elem_classes=["hud-panel"], elem_id="backend_panel"):
+        gr.Markdown("## Backend Configuration", elem_classes=["hud-title"])
 
-    with gr.Row():
-        init_models, init_encoders, init_vaes = refresh_file_lists()
+        with gr.Row():
+            init_models, init_encoders, init_vaes = refresh_file_lists()
 
-        model_dropdown = gr.Dropdown(label="Diffusion model (Krea 2 Turbo fp8)", **{k:v for k,v in init_models.items() if k in ("choices","value")})
-        encoder_dropdown = gr.Dropdown(label="Text encoder (Qwen3-VL fp8)", **{k:v for k,v in init_encoders.items() if k in ("choices","value")})
-        vae_dropdown = gr.Dropdown(label="VAE (Qwen-Image)", **{k:v for k,v in init_vaes.items() if k in ("choices","value")})
-        refresh_btn = gr.Button("Refresh file lists")
+            model_dropdown = gr.Dropdown(label="Diffusion model (Krea 2 Turbo fp8)", **{k:v for k,v in init_models.items() if k in ("choices","value")})
+            encoder_dropdown = gr.Dropdown(label="Text encoder (Qwen3-VL fp8)", **{k:v for k,v in init_encoders.items() if k in ("choices","value")})
+            vae_dropdown = gr.Dropdown(label="VAE (Qwen-Image)", **{k:v for k,v in init_vaes.items() if k in ("choices","value")})
+            refresh_btn = gr.Button("Refresh file lists")
 
     refresh_btn.click(
         fn=refresh_file_lists,
