@@ -11,9 +11,9 @@ Generation time with a LoRA on an **RTX 3060 Laptop GPU (6 GB VRAM)** is a blazi
 Application Screenshot:
 -----------------------
 
-![alt text](assets/screen1.png)
-
 ![alt text](assets/screen2.png)
+
+![alt text](assets/screen1.png)
 
 
 > **⚠️ APP IS IN ACTIVE DEVELOPMENT ⚠️**
