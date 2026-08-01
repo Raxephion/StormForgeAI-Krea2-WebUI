@@ -12,7 +12,7 @@ Application Screenshot:
 -----------------------
 
 
-![alt text](assets/screen01.png)
+![alt text](assets/screen1.png)
 
 
 > **⚠️ APP IS IN ACTIVE DEVELOPMENT ⚠️**
