@@ -27,6 +27,7 @@ COMFY_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ComfyUI")
 DIFFUSION_MODELS_DIR = os.path.join(COMFY_ROOT, "models", "diffusion_models")
 TEXT_ENCODERS_DIR = os.path.join(COMFY_ROOT, "models", "text_encoders")
 VAE_DIR = os.path.join(COMFY_ROOT, "models", "vae")
+LORAS_DIR = os.path.join(COMFY_ROOT, "models", "loras")
 
 CLIENT_ID = str(uuid.uuid4())
 
@@ -42,14 +43,30 @@ def list_safetensors(folder):
     return sorted(files)
 
 
+def list_loras(folder):
+    """Return ComfyUI-compatible LoRA paths, including nested folders."""
+    if not os.path.isdir(folder):
+        return []
+
+    files = []
+    for root, _, filenames in os.walk(folder):
+        for filename in filenames:
+            if filename.lower().endswith((".safetensors", ".sft")):
+                relative_path = os.path.relpath(os.path.join(root, filename), folder)
+                files.append(relative_path)
+    return sorted(files, key=str.lower)
+
+
 def refresh_file_lists():
     models = list_safetensors(DIFFUSION_MODELS_DIR)
     encoders = list_safetensors(TEXT_ENCODERS_DIR)
     vaes = list_safetensors(VAE_DIR)
+    loras = ["None"] + list_loras(LORAS_DIR)
     return (
         gr.update(choices=models, value=models[0] if models else None),
         gr.update(choices=encoders, value=encoders[0] if encoders else None),
         gr.update(choices=vaes, value=vaes[0] if vaes else None),
+        gr.update(choices=loras, value="None"),
     )
 
 
@@ -61,6 +78,9 @@ def build_workflow(
     model_file,
     encoder_file,
     vae_file,
+    lora_file,
+    lora_weight,
+    weight_dtype,
     prompt,
     negative_prompt,
     width,
@@ -74,12 +94,15 @@ def build_workflow(
     use_tiled_vae,
     tile_size,
 ):
+    use_lora = bool(lora_file and lora_file != "None")
+    model_source = ["10", 0] if use_lora else ["1", 0]
+
     workflow = {
         "1": {
             "class_type": "UNETLoader",
             "inputs": {
                 "unet_name": model_file,
-                "weight_dtype": "default",
+                "weight_dtype": weight_dtype,
             },
         },
         "2": {
@@ -126,7 +149,7 @@ def build_workflow(
                 "sampler_name": sampler_name,
                 "scheduler": scheduler,
                 "denoise": 1.0,
-                "model": ["1", 0],
+                "model": model_source,
                 "positive": ["4", 0],
                 "negative": ["5", 0],
                 "latent_image": ["6", 0],
@@ -140,6 +163,16 @@ def build_workflow(
             },
         },
     }
+
+    if use_lora:
+        workflow["10"] = {
+            "class_type": "LoraLoaderModelOnly",
+            "inputs": {
+                "model": ["1", 0],
+                "lora_name": lora_file,
+                "strength_model": float(lora_weight),
+            },
+        }
 
     if use_tiled_vae:
         workflow["8"] = {
@@ -205,6 +238,9 @@ def generate(
     model_file,
     encoder_file,
     vae_file,
+    lora_file,
+    lora_weight,
+    weight_dtype,
     prompt,
     negative_prompt,
     width,
@@ -234,7 +270,7 @@ def generate(
     actual_seed = random.randint(0, 2**32 - 1) if randomize_seed else int(seed)
 
     workflow = build_workflow(
-        model_file, encoder_file, vae_file,
+        model_file, encoder_file, vae_file, lora_file, lora_weight, weight_dtype,
         prompt, negative_prompt,
         width, height, steps, cfg,
         sampler_name, scheduler,
@@ -555,23 +591,45 @@ with gr.Blocks(title="StormForgeAI Krea 2 WebUI", css=CYBERPUNK_CSS) as demo:
         gr.Markdown("## Backend Configuration", elem_classes=["hud-title"])
 
         with gr.Row():
-            init_models, init_encoders, init_vaes = refresh_file_lists()
+            init_models, init_encoders, init_vaes, init_loras = refresh_file_lists()
 
             model_dropdown = gr.Dropdown(label="Diffusion model (Krea 2 Turbo fp8)", **{k:v for k,v in init_models.items() if k in ("choices","value")})
             encoder_dropdown = gr.Dropdown(label="Text encoder (Qwen3-VL fp8)", **{k:v for k,v in init_encoders.items() if k in ("choices","value")})
             vae_dropdown = gr.Dropdown(label="VAE (Qwen-Image)", **{k:v for k,v in init_vaes.items() if k in ("choices","value")})
             refresh_btn = gr.Button("Refresh file lists")
 
+        with gr.Row():
+            lora_dropdown = gr.Dropdown(
+                label="LoRA (ComfyUI/models/loras)",
+                **{k:v for k,v in init_loras.items() if k in ("choices", "value")},
+                scale=3,
+            )
+            lora_weight_slider = gr.Slider(
+                minimum=-2.0,
+                maximum=2.0,
+                value=1.0,
+                step=0.05,
+                label="LoRA model weight",
+                scale=2,
+            )
+            weight_dtype_dropdown = gr.Dropdown(
+                label="UNET weight dtype",
+                choices=["default", "fp8_e4m3fn", "fp8_e4m3fn_fast", "fp8_e5m2"],
+                value="default",
+                scale=2,
+            )
+
     refresh_btn.click(
         fn=refresh_file_lists,
         inputs=None,
-        outputs=[model_dropdown, encoder_dropdown, vae_dropdown],
+        outputs=[model_dropdown, encoder_dropdown, vae_dropdown, lora_dropdown],
     )
 
     generate_btn.click(
         fn=generate,
         inputs=[
             model_dropdown, encoder_dropdown, vae_dropdown,
+            lora_dropdown, lora_weight_slider, weight_dtype_dropdown,
             prompt_box, negative_box,
             width_slider, height_slider,
             steps_slider, cfg_slider,

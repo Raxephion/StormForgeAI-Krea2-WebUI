@@ -19,8 +19,8 @@ if not exist "%~dp0ComfyUI\main.py" (
 
 call "%~dp0venv\Scripts\activate.bat"
 
-echo Starting ComfyUI backend (low VRAM mode)...
-start "Krea2 Backend - ComfyUI" cmd /k "cd /d "%~dp0ComfyUI" && "%~dp0venv\Scripts\python.exe" main.py --listen 127.0.0.1 --port 8188 --lowvram --reserve-vram 0.5"
+echo Starting ComfyUI backend...
+start "Krea2 Backend - ComfyUI" cmd /k "cd /d "%~dp0ComfyUI" && "%~dp0venv\Scripts\python.exe" main.py --listen 127.0.0.1 --port 8188 --preview-method taesd"
 
 echo Waiting for backend to come online...
 set /a tries=0

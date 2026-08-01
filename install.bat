@@ -40,9 +40,10 @@ echo Upgrading pip...
 python -m pip install --upgrade pip
 
 echo.
-echo Installing PyTorch with CUDA support...
-echo (If you have an older/newer CUDA driver, edit the index-url below to match.)
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+echo Installing PyTorch with CUDA 13.0 support...
+echo (Needed for optimized fp8/LoRA CUDA kernels. If you have an older GPU driver
+echo  that doesn't support CUDA 13.0, change cu130 below to cu126 or cu124.)
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu130
 
 if not exist ComfyUI (
     echo.
