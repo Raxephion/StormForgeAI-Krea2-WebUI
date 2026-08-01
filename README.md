@@ -8,6 +8,13 @@ Because the backend is powered by ComfyUI, the application uses the **standard C
 
 Generation time with a LoRA on an **RTX 3060 Laptop GPU (6 GB VRAM)** is a blazing **36 seconds** using the default settings and **40 seconds** with LoRA.
 
+Application Screenshot:
+-----------------------
+
+
+![alt text](assets/screen01.png)
+
+
 > **⚠️ APP IS IN ACTIVE DEVELOPMENT ⚠️**
 
 ---
