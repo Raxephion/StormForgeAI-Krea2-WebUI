@@ -6,7 +6,7 @@ StormForgeAI Krea 2 WebUI provides a clean, straightforward interface focused on
 
 Because the backend is powered by ComfyUI, the application uses the **standard ComfyUI folder structure** for diffusion models, LoRAs, VAEs, text encoders, and other assets. This means you can easily reuse existing ComfyUI model libraries without duplicating files.
 
-Generation time with a LoRA on an **RTX 3060 Laptop GPU (6 GB VRAM)** is a blazing **46 seconds** using the default settings.
+Generation time with a LoRA on an **RTX 3060 Laptop GPU (6 GB VRAM)** is a blazing **40 seconds** using the default settings.
 
 > **⚠️ APP IS IN ACTIVE DEVELOPMENT ⚠️**
 
